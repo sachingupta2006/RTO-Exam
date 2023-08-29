@@ -1,7 +1,39 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'model.dart';
 
-class QuestionBank extends StatelessWidget {
+class QuestionBank extends StatefulWidget {
   const QuestionBank({super.key});
+
+  @override
+  State<QuestionBank> createState() => _QuestionBankState();
+}
+
+class _QuestionBankState extends State<QuestionBank> {
+  Future<TrafficSigns> fetchData() async {
+    final response = await http.get(
+        Uri.parse('http://mapi.trycatchtech.com/v1/rto/image_question_list'));
+
+    if (response.statusCode == 200) {
+      // If the server did return a 200 OK response,
+      // then parse the JSON.
+      return TrafficSigns.fromJson(jsonDecode(response.body));
+    } else {
+      // If the server did not return a 200 OK response,
+      // then throw an exception.
+      throw Exception('Failed to load');
+    }
+  }
+
+  late Future<TrafficSigns> futureData;
+
+  @override
+  void initState() {
+    super.initState();
+    futureData = fetchData();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,18 +99,19 @@ class QuestionBank extends StatelessWidget {
                 'Compulsory turn left',
                 Icon(Icons.arrow_circle_left_outlined,
                     color: Colors.indigo[900])),
-            trafficSignsWidget(
-                'Compulsory turn left',
-                Icon(Icons.arrow_circle_left_outlined,
-                    color: Colors.indigo[900])),
-            trafficSignsWidget(
-                'Compulsory turn left',
-                Icon(Icons.arrow_circle_left_outlined,
-                    color: Colors.indigo[900])),
-            trafficSignsWidget(
-                'Compulsory turn left',
-                Icon(Icons.arrow_circle_left_outlined,
-                    color: Colors.indigo[900])),
+            FutureBuilder<TrafficSigns>(
+              future: futureData,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return Text(snapshot.data!.name.toString());
+                } else if (snapshot.hasError) {
+                  return Text('error showsh =>>>>>> ${snapshot.error}');
+                }
+
+                // By default, show a loading spinner.
+                return const CircularProgressIndicator();
+              },
+            )
           ],
         ),
       ),
@@ -138,13 +171,15 @@ class QuestionBank extends StatelessWidget {
                 'https://mapi.trycatchtech.com/uploads/rto/ddfa7e57ca46e2f2c69c5b09a509769c.png',
                 height: 60,
               ),
-              const SizedBox(width: 25),
-              Text(
-                txt,
-                style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black),
+              const SizedBox(width: 20),
+              Flexible(
+                child: Text(
+                  txt,
+                  style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black),
+                ),
               )
             ],
           ),
