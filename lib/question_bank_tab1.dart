@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'model.dart';
@@ -43,41 +42,43 @@ class _QuestionBankTab1State extends State<QuestionBankTab1> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.yellow,
-      body: ListView.separated(
-          padding: const EdgeInsets.all(10),
-          itemBuilder: (context, index) {
-            return Container(
-              decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Colors.black, width: 0.5),
-                  borderRadius: BorderRadius.circular(15)),
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    questionBankList[index].question!,
-                    style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.black),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.separated(
+              padding: const EdgeInsets.all(10),
+              itemBuilder: (context, index) {
+                return Container(
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.black, width: 0.5),
+                      borderRadius: BorderRadius.circular(15)),
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        questionBankList[index].question!,
+                        style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black),
+                      ),
+                      const SizedBox(height: 30),
+                      Text(
+                        questionBankList[index].answer!,
+                        style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black),
+                      )
+                    ],
                   ),
-                  const SizedBox(height: 30),
-                  Text(
-                    questionBankList[index].answer!,
-                    style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black),
-                  )
-                ],
-              ),
-            );
-          },
-          separatorBuilder: (context, index) => const SizedBox(height: 20),
-          itemCount: questionBankList.length),
+                );
+              },
+              separatorBuilder: (context, index) => const SizedBox(height: 20),
+              itemCount: questionBankList.length),
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:rto/model.dart';
 import 'package:http/http.dart' as http;
 
 var answeredData = [].obs;
+var count = 0.obs;
 
 class Exam extends StatefulWidget {
   const Exam({super.key});
@@ -39,6 +40,20 @@ class _ExamState extends State<Exam> {
     } catch (e) {
       debugPrint(e.toString());
     }
+  }
+
+  void countCorrectAnswer() {
+    for (int i = 0;
+        i < examQuestionsList.length && i < answeredData.length;
+        i++) {
+      if (examQuestionsList[i].answer == answeredData[i].toString()) {
+        count.value++;
+      }
+    }
+
+    print('Total matching elements at the same index: $count');
+    print(
+        'examquestion[i] = ${examQuestionsList[0].answer} :  answerdata = ${answeredData[0]}');
   }
 
   @override
@@ -220,8 +235,9 @@ class _ExamState extends State<Exam> {
                                 answeredData.value =
                                     List.from(answeredData.value)
                                       ..add(selectedRadio.value);
-                                print(
-                                    'indx vlue ${indx.value} answredData $answeredData');
+                                indx.value == examQuestionsList.length
+                                    ? countCorrectAnswer()
+                                    : null;
                                 selectedRadio.value = 0;
                               },
                               child: Container(
@@ -262,23 +278,27 @@ class _ExamState extends State<Exam> {
               padding: const EdgeInsets.all(10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Center(
+                children: [
+                  const Center(
                     child: Text('Results',
                         style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w600,
                             color: Colors.red)),
                   ),
-                  SizedBox(height: 20),
-                  Text('You have answered 16 of 50 Questions correctly!}',
+                  const SizedBox(height: 20),
+                  Text(
+                      'You have answered ${count.value} of ${examQuestionsList.length} Questions correctly!}',
                       style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w500,
-                          color: Colors.red)),
-                  SizedBox(height: 20),
-                  Text('Score is Poor! You need to practice more!',
-                      style: TextStyle(
+                          color: count.value < 25 ? Colors.red : Colors.green)),
+                  const SizedBox(height: 20),
+                  Text(
+                      count.value < 25
+                          ? 'Score is Poor! You need to practice more!'
+                          : 'Score is Good!',
+                      style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
                           color: Colors.black))
