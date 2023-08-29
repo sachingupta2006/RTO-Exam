@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'model.dart';
 
@@ -12,33 +11,58 @@ class QuestionBank extends StatefulWidget {
 }
 
 class _QuestionBankState extends State<QuestionBank> {
-  Future<TrafficSigns> fetchData() async {
-    final response = await http.get(
-        Uri.parse('http://mapi.trycatchtech.com/v1/rto/image_question_list'));
-
-    if (response.statusCode == 200) {
-      // If the server did return a 200 OK response,
-      // then parse the JSON.
-      return TrafficSigns.fromJson(jsonDecode(response.body));
-    } else {
-      // If the server did not return a 200 OK response,
-      // then throw an exception.
-      throw Exception('Failed to load');
-    }
-  }
-
-  late Future<TrafficSigns> futureData;
+  bool isLoading1 = true;
+  List<QuestionBank> questionBankList = [];
+  bool isLoading2 = true;
+  List<TrafficSigns> trafficSignsList = [];
 
   @override
   void initState() {
     super.initState();
-    futureData = fetchData();
+    // getData1();
+    getData2();
+  }
+
+  // getData1() async {
+  //   try {
+  //     String url = 'https://mapi.trycatchtech.com/v1/rto/text_question_list';
+  //     http.Response res = await http.get(Uri.parse(url));
+  //     if (res.statusCode == 200) {
+  //       List<dynamic> responseData1 = json.decode(res.body);
+  //       questionBankList =
+  //           responseData1.map((item) => QuestionBank.fromJson(item)).toList();
+  //       setState(() {
+  //         isLoading1 = false;
+  //       });
+  //     }
+  //   } catch (e) {
+  //     debugPrint(e.toString());
+  //   }
+  // }
+
+  getData2() async {
+    try {
+      String url = 'https://mapi.trycatchtech.com/v1/rto/image_question_list';
+      http.Response res = await http.get(Uri.parse(url));
+      if (res.statusCode == 200) {
+        List<dynamic> responseData = json.decode(res.body);
+        trafficSignsList =
+            responseData.map((item) => TrafficSigns.fromJson(item)).toList();
+
+        setState(() {
+          isLoading2 = false;
+        });
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
         length: 2,
+        initialIndex: 1,
         child: Scaffold(
           appBar: AppBar(
             title: const Text('Question Bank',
@@ -73,9 +97,6 @@ class _QuestionBankState extends State<QuestionBank> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            questionWidget(
-                'que fu frw  hffh ufhoeufwefieowef efe dw d egp yf f f eofpaw ef efu waef eu fpawe fwe ffwu tr  w stion',
-                'an efwefw efewfhfh f uh ur  g g gy fu u f swer'),
             questionWidget('question', 'answer'),
             questionWidget('question', 'answer'),
             questionWidget('question', 'answer'),
@@ -91,30 +112,19 @@ class _QuestionBankState extends State<QuestionBank> {
       height: double.infinity,
       width: double.infinity,
       padding: const EdgeInsets.all(10),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            trafficSignsWidget(
-                'Compulsory turn left',
-                Icon(Icons.arrow_circle_left_outlined,
-                    color: Colors.indigo[900])),
-            FutureBuilder<TrafficSigns>(
-              future: futureData,
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return Text(snapshot.data!.name.toString());
-                } else if (snapshot.hasError) {
-                  return Text('error showsh =>>>>>> ${snapshot.error}');
-                }
-
-                // By default, show a loading spinner.
-                return const CircularProgressIndicator();
-              },
+      child: isLoading2
+          ? const Center(
+              child: CircularProgressIndicator(),
             )
-          ],
-        ),
-      ),
+          : ListView.builder(
+              scrollDirection: Axis.vertical,
+              itemBuilder: (context, index) {
+                return trafficSignsWidget(
+                    trafficSignsList[index].name ?? 'Unknown',
+                    trafficSignsList[index].image!);
+              },
+              itemCount: trafficSignsList.length,
+            ),
     );
   }
 
@@ -156,9 +166,8 @@ class _QuestionBankState extends State<QuestionBank> {
     );
   }
 
-  Widget trafficSignsWidget(String txt, Widget widget) {
+  Widget trafficSignsWidget(String txt, String netImage) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           color: Colors.white,
@@ -167,10 +176,10 @@ class _QuestionBankState extends State<QuestionBank> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Image.network(
-                'https://mapi.trycatchtech.com/uploads/rto/ddfa7e57ca46e2f2c69c5b09a509769c.png',
-                height: 60,
-              ),
+              Image.network(netImage, height: 60,
+                  errorBuilder: (context, error, stackTrace) {
+                return const Text('Image not available');
+              }),
               const SizedBox(width: 20),
               Flexible(
                 child: Text(
